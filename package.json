@@ -1,12 +1,12 @@
 {
-  "name": "babel-plugin-globals",
-  "version": "1.0.1",
+  "name": "babel-plugin-namespaced-globals",
+  "version": "2.0.0",
   "description": "A babel plugin that exposes ES6 modules to global variables.",
   "license": "MIT",
-  "repository": "mairatma/babel-plugin-globals",
+  "repository": "uship/babel-plugin-namespaced-globals",
   "author": {
-    "name": "Maira Bello",
-    "email": "maira.araujo@liferay.com"
+    "name": "Daniel Poindexter",
+    "email": "dpoindexter@uship.com"
   },
   "engines": {
     "node": ">=0.12.0"
