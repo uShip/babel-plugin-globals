@@ -219,6 +219,39 @@ module.exports = function(babel) {
     return filename;
   }
 
+  /**
+   * Babylon6 class and function expressions preceded by
+   * `export default` are parsed as declarations. Check if the 
+   * declaration has an identifier -- if not, create a 
+   * declaration with a new local identifier
+   * @param  {FunctionDeclaration|ClassDeclaration} declaration
+   * @param  {Scope} scope The declaration's scope
+   * @return {FunctionDeclaration|ClassDeclaration} Declaration with identifier
+   */
+  function maybeDeclaration(declaration, scope) {
+    if (declaration.id !== null) return declaration;
+    
+    var id = scope.generateUidIdentifier();
+    if (t.isFunctionDeclaration(declaration)) {
+      return t.functionDeclaration(
+        id,
+        declaration.params,
+        declaration.body,
+        declaration.generator,
+        declaration.async
+      );
+    }
+
+    if (t.isClassDeclaration(declaration)) {
+      return t.classDeclaration(
+        id,
+        declaration.superClass,
+        declaration.body,
+        declaration.decorators || []
+      );
+    }
+  }
+
   return {
     visitor: {
       /**
@@ -307,12 +340,24 @@ module.exports = function(babel) {
        * @param {!Object} state
        */
       ExportDefaultDeclaration: function(nodePath, state) {
+        var node = nodePath.node;
         var fileName = getFilenameNoExt(state.file.opts.filename);
         var replacements = [];
+        var identifierToAssign;
+        var globalIdentifier;
+
+        // Handles function and class declarations as default exports
+        if (t.isFunctionDeclaration(node.declaration) || t.isClassDeclaration(node.declaration)) {
+          var declaration = maybeDeclaration(node.declaration, nodePath.scope);
+          replacements.push(declaration);
+          identifierToAssign = declaration.id;
+        } else {
+          identifierToAssign = node.declaration;
+        }
 
         addNamespaceExpressions(state, fileName, replacements);
-        var id = getGlobalIdentifier(state, fileName);
-        assignToGlobal(id, replacements, nodePath.node.declaration);
+        globalIdentifier = getGlobalIdentifier(state, fileName);
+        assignToGlobal(globalIdentifier, replacements, identifierToAssign);
 
         nodePath.replaceWithMultiple(replacements);
       },
