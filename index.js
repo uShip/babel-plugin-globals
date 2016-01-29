@@ -73,7 +73,8 @@ module.exports = function(babel) {
   function getRootRelativePath(state, filePath) {
     assertFilenameRequired(state.file.opts.filename);
     filePath = path.resolve(path.dirname(state.file.opts.filename), filePath);
-    return path.relative(process.cwd(), filePath);
+    var namespaceRoot = state.opts.namespaceRoot || process.cwd();
+    return path.relative(namespaceRoot, filePath);
   }
 
   /**

@@ -21,7 +21,9 @@ module.exports = {
   },
 
   testTransformOnlyModules: function(test) {
-    var result = babel.transform('var a = 2;', getBabelOptions(undefined, true));
+    var result = babel.transform('var a = 2;', getBabelOptions(undefined, {
+      transformOnlyModules: true
+    }));
     var expectedResult = 'var a = 2;';
     assert.strictEqual(expectedResult, result.code);
     test.done();
@@ -121,6 +123,21 @@ module.exports = {
     var expectedResult = '(function () {\n' +
       '  this.myGlobal.foo = this.myGlobal.foo || {};\n' +
       '  this.myGlobal.foo.bar = foo;\n' +
+      '}).call(this);';
+    assert.strictEqual(expectedResult, result.code);
+
+    test.done();
+  },
+
+  testCustomRootExport: function(test) {
+    var babelOptions = getBabelOptions(path.resolve('foo/root/baz/bar.js'), {
+      namespaceRoot: path.resolve('foo/root')
+    });
+    var result = babel.transform('export default foo', babelOptions);
+
+    var expectedResult = '(function () {\n' +
+      '  this.myGlobal.baz = this.myGlobal.baz || {};\n' +
+      '  this.myGlobal.baz.bar = foo;\n' +
       '}).call(this);';
     assert.strictEqual(expectedResult, result.code);
 
@@ -260,21 +277,6 @@ module.exports = {
     test.done();
   },
 
-  testNamedFunctionExpressionExport: function(test) {
-    var babelOptions = getBabelOptions(path.resolve('foo/bar.js'));
-    var result = babel.transform('export function() {}', babelOptions);
-
-    var expectedResult = '(function () {\n' +
-      '  function foo() {}\n' +
-      '  this.myGlobal.foo = this.myGlobal.foo || {};\n' +
-      '  this.myGlobal.foo.bar = {};\n' +
-      '  this.myGlobal.foo.bar.foo = foo;\n' +
-      '}).call(this);';
-    assert.strictEqual(expectedResult, result.code);
-
-    test.done();
-  },
-
   testNamedSourceExport: function(test) {
     var babelOptions = getBabelOptions(path.resolve('foo/bar.js'));
     var result = babel.transform('export {foo, bar} from "./foo"', babelOptions);
@@ -328,14 +330,15 @@ module.exports = {
   }
 };
 
-function getBabelOptions(filename, transformOnlyModules) {
-  transformOnlyModules = !!transformOnlyModules;
+function getBabelOptions(filename, opts) {
+  opts = opts || {};
   return {
     filename: filename,
     plugins: [
       [globalsPlugin, {
         globalName: 'myGlobal',
-        transformOnlyModules: transformOnlyModules,
+        transformOnlyModules: !!opts.transformOnlyModules,
+        namespaceRoot: opts.namespaceRoot,
         externals: {
           'external-module': 'ExternalModule'
         }
