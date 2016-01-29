@@ -154,6 +154,66 @@ module.exports = {
     test.done();
   },
 
+  testDefaultFunctionExpressionExport: function(test) {
+    var babelOptions = getBabelOptions(path.resolve('foo/bar.js'));
+    
+    var result = babel.transform('export default function() {}', babelOptions);
+
+    var expectedResult = '(function () {\n' +
+      '  function _temp() {}\n\n' +
+      '  this.myGlobal.foo = this.myGlobal.foo || {};\n' +
+      '  this.myGlobal.foo.bar = _temp;\n' +
+      '}).call(this);';
+    assert.strictEqual(expectedResult, result.code);
+
+    test.done();
+  },
+
+  testDefaultFunctionDeclarationExport: function(test) {
+    var babelOptions = getBabelOptions(path.resolve('foo/bar.js'));
+    
+    var result = babel.transform('export default function foo() {}', babelOptions);
+
+    var expectedResult = '(function () {\n' +
+      '  function foo() {}\n' +
+      '  this.myGlobal.foo = this.myGlobal.foo || {};\n' +
+      '  this.myGlobal.foo.bar = foo;\n' +
+      '}).call(this);';
+    assert.strictEqual(expectedResult, result.code);
+
+    test.done();
+  },
+
+  testDefaultClassExpressionExport: function(test) {
+    var babelOptions = getBabelOptions(path.resolve('foo/bar.js'));
+    
+    var result = babel.transform('export default class {}', babelOptions);
+
+    var expectedResult = '(function () {\n' +
+      '  class _temp {}\n\n' +
+      '  this.myGlobal.foo = this.myGlobal.foo || {};\n' +
+      '  this.myGlobal.foo.bar = _temp;\n' +
+      '}).call(this);';
+    assert.strictEqual(expectedResult, result.code);
+
+    test.done();
+  },
+
+  testDefaultClassDeclarationExport: function(test) {
+    var babelOptions = getBabelOptions(path.resolve('foo/bar.js'));
+    
+    var result = babel.transform('export default class Foo{}', babelOptions);
+
+    var expectedResult = '(function () {\n' +
+      '  class Foo {}\n' +
+      '  this.myGlobal.foo = this.myGlobal.foo || {};\n' +
+      '  this.myGlobal.foo.bar = Foo;\n' +
+      '}).call(this);';
+    assert.strictEqual(expectedResult, result.code);
+
+    test.done();
+  },
+
   testNamedExport: function(test) {
     var babelOptions = getBabelOptions(path.resolve('foo/bar.js'));
     var result = babel.transform('export {foo, bar}', babelOptions);
@@ -188,6 +248,21 @@ module.exports = {
   testNamedFunctionDeclarationExport: function(test) {
     var babelOptions = getBabelOptions(path.resolve('foo/bar.js'));
     var result = babel.transform('export function foo() {}', babelOptions);
+
+    var expectedResult = '(function () {\n' +
+      '  function foo() {}\n' +
+      '  this.myGlobal.foo = this.myGlobal.foo || {};\n' +
+      '  this.myGlobal.foo.bar = {};\n' +
+      '  this.myGlobal.foo.bar.foo = foo;\n' +
+      '}).call(this);';
+    assert.strictEqual(expectedResult, result.code);
+
+    test.done();
+  },
+
+  testNamedFunctionExpressionExport: function(test) {
+    var babelOptions = getBabelOptions(path.resolve('foo/bar.js'));
+    var result = babel.transform('export function() {}', babelOptions);
 
     var expectedResult = '(function () {\n' +
       '  function foo() {}\n' +
