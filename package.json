@@ -1,6 +1,6 @@
 {
   "name": "@uship/babel-plugin-namespaced-globals",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "A babel plugin that exposes ES6 modules to global variables.",
   "license": "MIT",
   "repository": "uship/babel-plugin-namespaced-globals",
