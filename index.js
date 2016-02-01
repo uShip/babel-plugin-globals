@@ -100,14 +100,24 @@ module.exports = function(babel) {
    * Builds an expression for an external module on the global scope.
    * Supports ES6 and CommonJS-style modules by checking for default prop
    * ex. var ExternalModule = this.ExternalModule["default"] || this.ExternalModule;
-   * @param  {string} moduleName [description]
+   * @param  {string} moduleName
+   * @param {string} specifierName e.g. `foo` from import { foo } from 'bar';
+   * @param {boolean=} isWildcard If the import or export declaration is using a wildcard.
    * @return {LogicalExpression} 
    */
-  function buildExternalIdentifier(moduleName) {
+  function buildExternalIdentifier(moduleName, specifierName, isWildcard) {
     var baseExpr = t.memberExpression(
       t.thisExpression(),
       t.identifier(moduleName)
     );
+
+    if (isWildcard) {
+      return baseExpr;
+    }
+
+    if (specifierName) {
+      return t.memberExpression(baseExpr, t.Identifier(specifierName));
+    }
 
     var defaultPropExpr = t.memberExpression(
       baseExpr,
@@ -193,14 +203,14 @@ module.exports = function(babel) {
    * @param {string} filePath The path of the module.
    * @param {?string} name The name of the variable being imported or exported from
    *   the module.
-   * @param {boolean=} opt_isWildcard If the import or export declaration is using a wildcard.
+   * @param {boolean=} isWildcard If the import or export declaration is using a wildcard.
    * @return {Expression}
    */
-  function getGlobalIdentifier(state, filePath, name, opt_isWildcard) {
+  function getGlobalIdentifier(state, filePath, name, isWildcard) {
     var isExternalModule = (state.opts.externals && state.opts.externals[filePath]);
 
     var globalExpr = (isExternalModule)
-      ? buildExternalIdentifier(state.opts.externals[filePath])
+      ? buildExternalIdentifier(state.opts.externals[filePath], name, isWildcard)
       : buildModuleIdentifier(state, filePath, name);
 
     return globalExpr;

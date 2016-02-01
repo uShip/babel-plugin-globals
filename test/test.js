@@ -74,6 +74,18 @@ module.exports = {
     test.done();
   },
 
+  testWildcardImportFromExternal: function(test) {
+    var babelOptions = getBabelOptions(path.resolve('foo/bar.js'));
+    var result = babel.transform('import * as foo from "external-module"', babelOptions);
+
+    var expectedResult = '(function () {\n' +
+      '  var foo = this.ExternalModule;\n' +
+      '}).call(this);';
+    assert.strictEqual(expectedResult, result.code);
+
+    test.done();
+  },
+
   testNamedImport: function(test) {
     var babelOptions = getBabelOptions(path.resolve('foo/bar.js'));
     var result = babel.transform('import {foo, bar} from "./foo"', babelOptions);
@@ -81,6 +93,18 @@ module.exports = {
     var expectedResult = '(function () {\n' +
       '  var foo = this.myGlobal.foo.foo.foo;\n' +
       '  var bar = this.myGlobal.foo.foo.bar;\n' +
+      '}).call(this);';
+    assert.strictEqual(expectedResult, result.code);
+
+    test.done();
+  },
+
+  testNamedImportFromExternal: function(test) {
+    var babelOptions = getBabelOptions(path.resolve('foo/bar.js'));
+    var result = babel.transform('import { foo } from "external-module"', babelOptions);
+
+    var expectedResult = '(function () {\n' +
+      '  var foo = this.ExternalModule.foo;\n' +
       '}).call(this);';
     assert.strictEqual(expectedResult, result.code);
 
